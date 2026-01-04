@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hoja de Vida - {{ datos.perfil.nombre }}</title>
+    <meta name="description" content="Hoja de Vida de {{ datos.perfil.nombre }}, {{ datos.perfil.titulo }}.">
+
+    <!-- ICONOS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-color: #1f4e79;
+            --secondary-color: #2e86c1;
+            --background-color: #eef2f5;
+            --card-bg: #f8f9fa;
+            --text-color: #333;
+            --light-text: #666;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: var(--background-color);
+            margin: 0;
+            padding: 20px;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .cv {
+            max-width: 1100px;
+            margin: auto;
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        /* HEADER */
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: white;
+            margin: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            color: var(--secondary-color);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            /* Reemplaza el icono con una imagen real si tienes una: background-image: url('tu-foto.jpg'); background-size: cover; */
+        }
+
+        .header h1 {
+            margin: 15px 0 5px;
+            font-size: 2.5em;
+        }
+
+        .header p {
+            margin: 5px 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        /* CONTENIDO */
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .card h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+            border-left: 4px solid var(--secondary-color);
+            padding-left: 10px;
+            font-size: 1.3em;
+        }
+
+        .card h3 i {
+            margin-right: 8px;
+        }
+
+        /* HABILIDADES */
+        .skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .skills span {
+            display: inline-block;
+            background: #e3f2fd;
+            color: var(--primary-color);
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            transition: background 0.3s ease;
+        }
+
+        .skills span:hover {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        /* FORMACIÓN Y EXPERIENCIA */
+        .card p {
+            margin: 8px 0;
+        }
+
+        .card hr {
+            border: none;
+            height: 1px;
+            background: #ddd;
+            margin: 15px 0;
+        }
+
+        /* FOOTER OPCIONAL */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background: var(--card-bg);
+            border-top: 1px solid #ddd;
+        }
+
+        .footer a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            margin: 0 10px;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* RESPONSIVIDAD */
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            .header h1 {
+                font-size: 2em;
+            }
+            .avatar {
+                width: 100px;
+                height: 100px;
+                font-size: 40px;
+            }
+        }
+
+        /* IMPRESIÓN */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .cv {
+                box-shadow: none;
+                border-radius: 0;
+            }
+            .header {
+                background: white !important;
+                color: black !important;
+            }
+            .card {
+                background: white !important;
+                box-shadow: none;
+            }
+            .footer {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="cv">
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="avatar" aria-label="Foto de perfil">
+            <i class="fas fa-user"></i>
+        </div>
+        <h1>{{ datos.perfil.nombre }}</h1>
+        <p>{{ datos.perfil.titulo }}</p>
+        <p>{{ datos.perfil.universidad }}</p>
+    </div>
+
+    <!-- CONTENIDO -->
+    <div class="content">
+
+        <!-- COLUMNA IZQUIERDA -->
+        <div>
+
+            <div class="card">
+                <h3><i class="fas fa-id-card" aria-hidden="true"></i> Contacto</h3>
+                <p><i class="fas fa-envelope" aria-hidden="true"></i> <a href="mailto:{{ datos.contacto.email }}">{{ datos.contacto.email }}</a></p>
+                <p><i class="fas fa-phone" aria-hidden="true"></i> {{ datos.contacto.telefono }}</p>
+                <p><i class="fas fa-location-dot" aria-hidden="true"></i> {{ datos.contacto.direccion }}</p>
+            </div>
+
+            <div class="card">
+                <h3><i class="fas fa-code" aria-hidden="true"></i> Habilidades</h3>
+                <div class="skills">
+                    {% for h in datos.habilidades %}
+                        <span>{{ h }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+
+        <!-- COLUMNA DERECHA -->
+        <div>
+
+            <div class="card">
+                <h3><i class="fas fa-graduation-cap" aria-hidden="true"></i> Formación Académica</h3>
+                {% for f in datos.formacion %}
+                    <p><strong>{{ f.nivel }}</strong></p>
+                    <p>{{ f.institucion }}</p>
+                    <p>{{ f.detalle }}</p>
+                    {% if not loop.last %}<hr>{% endif %}
+                {% endfor %}
+                {% if not datos.formacion %}
+                    <p>No hay información de formación disponible.</p>
+                {% endif %}
+            </div>
+
+            <div class="card">
+                <h3><i class="fas fa-briefcase" aria-hidden="true"></i> Experiencia</h3>
+                {% for e in datos.experiencia %}
+                    <p><strong>{{ e.puesto }}</strong> - {{ e.empresa }}</p>
+                    <p>{{ e.descripcion }}</p>
+                    {% if not loop.last %}<hr>{% endif %}
+                {% endfor %}
+                {% if not datos.experiencia %}
+                    <p>No hay información de experiencia disponible.</p>
+                {% endif %}
+            </div>
+
+            <div class="card">
+                <h3><i class="fas fa-certificate" aria-hidden="true"></i> Cursos</h3>
+                {% for c in datos.cursos %}
+                    <p>{{ c.nombre }} - {{ c.institucion }}</p>
+                {% endfor %}
+                {% if not datos.cursos %}
+                    <p>No hay cursos registrados.</p>
+                {% endif %}
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- FOOTER OPCIONAL -->
+    <div class="footer">
+        <a href="https://linkedin.com/in/tu-perfil" target="_blank"><i class="fab fa-linkedin"></i> LinkedIn</a>
+        <a href="https://github.com/tu-usuario" target="_blank"><i class="fab fa-github"></i> GitHub</a>
+    </div>
+
+</div>
+
+</body>
+</html>
