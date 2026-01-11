@@ -40,7 +40,7 @@ def home(request):
         'proyectos': [
             {
                 'titulo': 'Práctica de Render',
-                'descripcion': 'Página web navideña desplegada en la plataforma Render.',
+                'descripcion': 'Página web del proyecto bootcamp.',
                 'url': 'https://proyecto2025-4v99.onrender.com'
             },
             {
@@ -57,9 +57,9 @@ def home(request):
                 'url': 'https://drive.google.com/file/d/1tZPwiW_oej5h-0QWprymZMOkrUFMGDwi/view?usp=drive_link'
             },
             {
-                'nombre': 'Certificado Académico',
+                'nombre': 'Certificado de HTML y CSS',
                 'institucion': 'Formación Complementaria',
-                'url': 'https://drive.google.com/file/d/1tZPwiW_oej5h-0QWprymZMOkrUFMGDwi/view?usp=drive_link'
+                'url': 'https://drive.google.com/file/d/1wDTdsVZ7IkBFLETni0egMw_g2_q-Oj4a/view?usp=drive_link'
             }
         ],
 
