@@ -1,93 +1,130 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
+from django.http import HttpResponse
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+from .models import (
+    DatosPersonales, ExperienciaLaboral, 
+    CursoRealizado, Reconocimiento, 
+    ProductoAcademico, ProductoLaboral, VentaGarage
+)
+
+# --- Funciones Auxiliares ---
+
+def get_active_profile():
+    """Obtiene el perfil marcado como activo."""
+    return DatosPersonales.objects.filter(perfilactivo=1).first()
+
+# --- Vistas Principales ---
 
 def home(request):
-    datos = {
-        'perfil': {
-            'nombre': 'Elkin Joshua Delgado Lopez',
-            'titulo': 'Estudiante de Tecnología de la Información',
-            'universidad': 'ULEAM',
-            'descripcion': 'Apasionado por el desarrollo web, Python y despliegue de aplicaciones en la nube.',
-        },
+    perfil = get_active_profile()
+    if not perfil:
+        return render(request, 'home.html', {'perfil': None})
 
-        'contacto': {
-            'email': 'elkinjoshuadelgadolopez@email.com',
-            'telefono': '+593 98 350 6478',
-            'direccion': 'Manta, Ecuador',
-        },
-
-        'habilidades': [
-            'HTML', 'CSS', 'JavaScript',
-            'Python', 'Django',
-            'PostgreSQL', 'Git'
-        ],
-
-        # 🔹 FORMACIÓN (bien acomodada)
-        'formacion': [
-    {
-        'nivel': 'Educación Secundaria',
-        'institucion': 'Unidad Educativa Fiscal Juan León Mera',
-        'detalle': 'Bachillerato en Ciencias',
-        'descripcion': 'Formación secundaria completa que fortaleció bases académicas, responsabilidad y trabajo en equipo.'
+    context = {
+        'perfil': perfil,
+        'resumen_exp': ExperienciaLaboral.objects.filter(idperfilconqueestaactivo=perfil, activarparaqueseveaenfront=True)[:3],
+        'resumen_cursos': CursoRealizado.objects.filter(idperfilconqueestaactivo=perfil, activarparaqueseveaenfront=True)[:3],
+        'resumen_rec': Reconocimiento.objects.filter(idperfilconqueestaactivo=perfil, activarparaqueseveaenfront=True)[:3],
+        'resumen_acad': ProductoAcademico.objects.filter(idperfilconqueestaactivo=perfil, activarparaqueseveaenfront=True)[:3],
+        'resumen_lab': ProductoLaboral.objects.filter(idperfilconqueestaactivo=perfil, activarparaqueseveaenfront=True)[:3],
+        'resumen_garage': VentaGarage.objects.all()[:5],
     }
-],
-        # 🔹 EXPERIENCIA (más viva pero breve)
-        'experiencia': [
-            {
-                'puesto': 'Practicante TI',
-                'empresa': 'Proyectos Académicos',
-                'descripcion': (
-                    'Participación en proyectos académicos aplicando conocimientos de desarrollo web, '
-                    'programación en Python y uso de herramientas modernas para el despliegue de aplicaciones.'
-                ),
-            }
-        ],
+    return render(request, 'home.html', context)
 
-        # 🔹 PROYECTOS (más interesantes)
-        'proyectos': [
-            {
-                'titulo': 'Práctica de Render',
-                'descripcion': (
-                    'Aplicación web desarrollada como parte de un bootcamp, '
-                    'desplegada en la nube utilizando Render, enfocada en buenas prácticas de desarrollo.'
-                ),
-                'url': 'https://proyecto2025-4v99.onrender.com'
-            },
-            {
-                'titulo': 'Página Web Navideña',
-                'descripcion': (
-                    'Página web estática con diseño creativo y temática navideña, '
-                    'publicada en GitHub Pages como práctica de maquetación y estilos.'
-                ),
-                'url': 'https://joshua391125.github.io/josu-391125.github.io/'
-            }
-        ],
+# --- Vistas de Navegación ---
 
-        # 🔹 CERTIFICADOS (con más vida)
-        'cursos': [
-            {
-                'nombre': 'Certificado de Python',
-                'institucion': 'Curso de Python',
-                'descripcion': 'Capacitación en fundamentos de programación, lógica, estructuras de control y manejo de datos.',
-                'url': 'https://drive.google.com/file/d/1tZPwiW_oej5h-0QWprymZMOkrUFMGDwi/view?usp=drive_link'
-            },
-            {
-                'nombre': 'Certificado de HTML y CSS',
-                'institucion': 'Formación Complementaria',
-                'descripcion': 'Curso enfocado en diseño web, estructura de páginas y estilos responsivos.',
-                'url': 'https://drive.google.com/file/d/1wDTdsVZ7IkBFLETni0egMw_g2_q-Oj4a/view?usp=drive_link'
-            }
-        ],
+def experiencia(request):
+    perfil = get_active_profile()
+    exp_list = ExperienciaLaboral.objects.filter(idperfilconqueestaactivo=perfil, activarparaqueseveaenfront=True)
+    return render(request, 'experiencia.html', {'experiencias': exp_list, 'perfil': perfil})
 
-        'referencias': [
-            {
-                'nombre': 'Ing. Marcos Alvarado',
-                'telefono': '0992807826'
-            },
-            {
-                'nombre': 'Lic. Jamileth Delgado',
-                'telefono': '0987835167'
-            }
-        ]
-    }
+def productos_academicos(request):
+    perfil = get_active_profile()
+    prod_acad = ProductoAcademico.objects.filter(idperfilconqueestaactivo=perfil, activarparaqueseveaenfront=True)
+    return render(request, 'productos_academicos.html', {'productos_academicos': prod_acad, 'perfil': perfil})
 
-    return render(request, 'hoja-de-vida.html', {'datos': datos})
+def productos_laborales(request):
+    perfil = get_active_profile()
+    prod_lab = ProductoLaboral.objects.filter(idperfilconqueestaactivo=perfil, activarparaqueseveaenfront=True)
+    return render(request, 'productos_laborales.html', {'productos_laborales': prod_lab, 'perfil': perfil})
+
+def cursos(request):
+    perfil = get_active_profile()
+    cursos_list = CursoRealizado.objects.filter(idperfilconqueestaactivo=perfil, activarparaqueseveaenfront=True)
+    return render(request, 'cursos.html', {'cursos': cursos_list, 'perfil': perfil})
+
+def reconocimientos(request):
+    perfil = get_active_profile()
+    reco_list = Reconocimiento.objects.filter(idperfilconqueestaactivo=perfil, activarparaqueseveaenfront=True)
+    return render(request, 'reconocimientos.html', {'reconocimientos': reco_list, 'perfil': perfil})
+
+def garage(request):
+    perfil = get_active_profile()
+    items = VentaGarage.objects.all()
+    return render(request, 'garage.html', {'garage_items': items, 'perfil': perfil})
+
+# --- Exportar CV en PDF ---
+
+def exportar_cv(request):
+    """Vista para exportar el CV en PDF"""
+    try:
+        perfil = get_active_profile()
+        if not perfil:
+            return HttpResponse("No hay perfil activo", status=404)
+        
+        # Obtener datos
+        experiencias = ExperienciaLaboral.objects.filter(
+            idperfilconqueestaactivo=perfil, 
+            activarparaqueseveaenfront=True
+        )
+        cursos_list = CursoRealizado.objects.filter(
+            idperfilconqueestaactivo=perfil, 
+            activarparaqueseveaenfront=True
+        )
+        reconocimientos_list = Reconocimiento.objects.filter(
+            idperfilconqueestaactivo=perfil, 
+            activarparaqueseveaenfront=True
+        )
+        productos_acad = ProductoAcademico.objects.filter(
+            idperfilconqueestaactivo=perfil, 
+            activarparaqueseveaenfront=True
+        )
+        productos_lab = ProductoLaboral.objects.filter(
+            idperfilconqueestaactivo=perfil, 
+            activarparaqueseveaenfront=True
+        )
+        
+        # Cargar plantilla
+        template = get_template('cv.html')
+        
+        # Renderizar con contexto
+        html_content = template.render({
+            'perfil': perfil,
+            'experiencias': experiencias,
+            'cursos': cursos_list,
+            'reconocimientos': reconocimientos_list,
+            'productos_academicos': productos_acad,
+            'productos_laborales': productos_lab,
+            'pdf_mode': True,
+        })
+        
+        # Crear PDF
+        response = HttpResponse(content_type='application/pdf')
+        filename = f"CV_{perfil.nombres}_{perfil.apellidos}.pdf"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        
+        # Convertir HTML a PDF
+        pisa_status = pisa.CreatePDF(
+            html_content,
+            dest=response,
+            encoding='UTF-8'
+        )
+        
+        if pisa_status.err:
+            return HttpResponse('Error al generar PDF', status=500)
+        
+        return response
+        
+    except Exception as e:
+        return HttpResponse(f'Error: {str(e)}', status=500)
