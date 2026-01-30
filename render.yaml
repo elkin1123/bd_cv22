@@ -7,13 +7,19 @@ services:
     startCommand: "gunicorn mi_proyecto.wsgi:application"
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: hoja_de_vida_db
-          property: connectionString
+        value: postgresql://bd_hojacv_user:WEaWUGuFvJVKa7AUfuSKmdpcbkmGxWSM@dpg-d5cq34er433s73a0dfog-a.oregon-postgres.render.com/bd_hojacv
       - key: SECRET_KEY
         generateValue: true
+      - key: DEBUG
+        value: "False"
       - key: PYTHON_VERSION
-        value: 3.12.0
+        value: 3.11.0
+      - key: DJANGO_SUPERUSER_USERNAME
+        value: "admin"
+      - key: DJANGO_SUPERUSER_EMAIL
+        value: "admin@example.com"
+      - key: DJANGO_SUPERUSER_PASSWORD
+        generateValue: true
     healthCheckPath: /
     autoDeploy: true
 

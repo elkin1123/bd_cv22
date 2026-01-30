@@ -1,36 +1,35 @@
 #!/usr/bin/env bash
+# build.sh para Render
 # Exit on error
 set -o errexit
 
 echo "=== INICIANDO DESPLIEGUE EN RENDER ==="
 
-# 1. Instalar dependencias
 echo "1. Instalando dependencias..."
+pip install --upgrade pip
 pip install -r requirements.txt
 
-# 2. Colectar archivos estáticos
-echo "2. Colectando archivos estáticos..."
-python manage.py collectstatic --no-input
+echo "2. Aplicando migraciones..."
+python manage.py makemigrations --noinput
+python manage.py migrate --noinput
 
-# 3. Aplicar migraciones
-echo "3. Aplicando migraciones..."
-python manage.py migrate
+echo "3. Recolectando archivos estáticos..."
+python manage.py collectstatic --noinput --clear
 
-# 4. Importar datos (si existe el archivo)
-echo "4. Verificando datos para importar..."
-if [ -f "datos_backup.json" ]; then
-    echo "   Encontrado datos_backup.json, importando..."
-    python import_data.py
-else
-    echo "   No hay datos_backup.json, creando superusuario por defecto..."
-    python manage.py shell -c "
+echo "4. Verificando superusuario..."
+python manage.py shell << EOF
 from django.contrib.auth.models import User
-if not User.objects.filter(username='admin').exists():
-    User.objects.create_superuser('admin', 'admin@example.com', 'Admin123')
-    print('Superusuario admin creado')
-else:
-    print('Superusuario ya existe')
-"
-fi
+import os
 
-echo "=== DESPLIEGUE COMPLETADO ==="
+username = os.environ.get('DJANGO_SUPERUSER_USERNAME', 'admin')
+email = os.environ.get('DJANGO_SUPERUSER_EMAIL', 'admin@example.com')
+password = os.environ.get('DJANGO_SUPERUSER_PASSWORD', 'admin123')
+
+if not User.objects.filter(username=username).exists():
+    User.objects.create_superuser(username, email, password)
+    print(f'✅ Superusuario {username} creado')
+else:
+    print('ℹ️ Superusuario ya existe')
+EOF
+
+echo "=== ✅ DESPLIEGUE COMPLETADO ==="

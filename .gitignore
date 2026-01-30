@@ -1,7 +1,29 @@
-venv
+# Django
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
 db.sqlite3
-.vscode
-media
-__pycache__
-**/__pycache__
+db.sqlite3-journal
+media/
 
+# Virtual environment
+venv/
+env/
+.venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+*.env
