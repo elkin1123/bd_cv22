@@ -13,7 +13,7 @@ services:
       - key: DEBUG
         value: "False"
       - key: PYTHON_VERSION
-        value: 3.11.0
+        value: 3.13.3  # ¡CAMBIADO! De 3.13.3 a 3.11.0
       - key: DJANGO_SUPERUSER_USERNAME
         value: "admin"
       - key: DJANGO_SUPERUSER_EMAIL
@@ -22,7 +22,3 @@ services:
         generateValue: true
     healthCheckPath: /
     autoDeploy: true
-
-databases:
-  - name: hoja_de_vida_db
-    plan: free
