@@ -12,9 +12,6 @@ from pathlib import Path
 if os.path.exists('.env'):
     from dotenv import load_dotenv
     load_dotenv()
-else:
-    # En producción, Render ya tiene las variables
-    pass
 
 # Directorio base
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,12 +19,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ============================================
 # 2. SEGURIDAD
 # ============================================
-# IMPORTANTE: En producción, Render debe tener SECRET_KEY como variable
-SECRET_KEY = os.environ.get('SECRET_KEY')
-if not SECRET_KEY:
-    raise ValueError("SECRET_KEY no está configurada. Configúrala en Render.")
+# Clave secreta con valor por defecto para desarrollo
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-clave-temporal-para-desarrollo-cambiar-en-produccion')
 
-DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
+DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 
 # ============================================
 # 3. HOSTS PERMITIDOS
@@ -96,7 +91,7 @@ TEMPLATES = [
 ]
 
 # ============================================
-# 7. BASE DE DATOS - VERSIÓN MEJORADA
+# 7. BASE DE DATOS
 # ============================================
 # SQLite para desarrollo
 DATABASES = {
@@ -108,22 +103,22 @@ DATABASES = {
 
 # PostgreSQL para producción (Render)
 DATABASE_URL = os.environ.get('DATABASE_URL')
-if DATABASE_URL and DATABASE_URL.startswith('postgres://'):
-    # Convertir postgres:// a postgresql://
-    DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
-    
+if DATABASE_URL:
     try:
         import dj_database_url
+        # Convertir postgres:// a postgresql:// si es necesario
+        if DATABASE_URL.startswith('postgres://'):
+            DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+        
         DATABASES['default'] = dj_database_url.config(
             default=DATABASE_URL,
             conn_max_age=600,
             ssl_require=True
         )
-        print("✅ Usando PostgreSQL de Render")
     except ImportError:
-        print("⚠️  dj-database-url no instalado. Ejecuta: pip install dj-database-url")
+        print("ADVERTENCIA: dj-database-url no instalado")
     except Exception as e:
-        print(f"⚠️  Error con PostgreSQL: {e}")
+        print(f"ADVERTENCIA: Error con PostgreSQL: {e}")
 
 # ============================================
 # 8. VALIDACIÓN DE CONTRASEÑAS
@@ -149,7 +144,6 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# IMPORTANTE: Ejecutar collectstatic antes de desplegar
 if not DEBUG:
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 else:
@@ -168,7 +162,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # ============================================
 # 12. SEGURIDAD EN PRODUCCIÓN
 # ============================================
-if not DEBUG:
+if not DEBUG and RENDER_EXTERNAL_HOSTNAME:
     # HTTPS
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = True
