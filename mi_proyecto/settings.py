@@ -1,48 +1,31 @@
 """
-Django settings para Render.com - VERSIÓN 100% FUNCIONAL
+Django settings para Render.com - VERSIÓN SIMPLIFICADA
 """
 
 import os
 from pathlib import Path
 
-# ============================================
-# 1. CARGA DE VARIABLES DE ENTORNO
-# ============================================
-# Cargar .env solo en desarrollo
-if os.path.exists('.env'):
-    from dotenv import load_dotenv
-    load_dotenv()
-
 # Directorio base
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ============================================
-# 2. SEGURIDAD
+# 1. SEGURIDAD
 # ============================================
-# Clave secreta con valor por defecto para desarrollo
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-clave-temporal-para-desarrollo-cambiar-en-produccion')
-
-DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-clave-temporal-para-desarrollo-123')
+DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
 # ============================================
-# 3. HOSTS PERMITIDOS
+# 2. HOSTS PERMITIDOS
 # ============================================
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '.onrender.com', 'bd-cv22.onrender.com']
 
 # Host de Render
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
-# Desarrollo local
-if DEBUG:
-    ALLOWED_HOSTS.extend(['localhost', '127.0.0.1', '0.0.0.0'])
-else:
-    # Producción
-    ALLOWED_HOSTS.extend(['.onrender.com', 'bd-cv22.onrender.com'])
-
 # ============================================
-# 4. APLICACIONES
+# 3. APLICACIONES
 # ============================================
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -55,7 +38,7 @@ INSTALLED_APPS = [
 ]
 
 # ============================================
-# 5. MIDDLEWARE
+# 4. MIDDLEWARE
 # ============================================
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -72,7 +55,7 @@ ROOT_URLCONF = 'mi_proyecto.urls'
 WSGI_APPLICATION = 'mi_proyecto.wsgi.application'
 
 # ============================================
-# 6. TEMPLATES
+# 5. TEMPLATES
 # ============================================
 TEMPLATES = [
     {
@@ -91,9 +74,8 @@ TEMPLATES = [
 ]
 
 # ============================================
-# 7. BASE DE DATOS
+# 6. BASE DE DATOS - SOLO SQLITE (TEMPORAL)
 # ============================================
-# SQLite para desarrollo
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -101,27 +83,8 @@ DATABASES = {
     }
 }
 
-# PostgreSQL para producción (Render)
-DATABASE_URL = os.environ.get('DATABASE_URL')
-if DATABASE_URL:
-    try:
-        import dj_database_url
-        # Convertir postgres:// a postgresql:// si es necesario
-        if DATABASE_URL.startswith('postgres://'):
-            DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
-        
-        DATABASES['default'] = dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=600,
-            ssl_require=True
-        )
-    except ImportError:
-        print("ADVERTENCIA: dj-database-url no instalado")
-    except Exception as e:
-        print(f"ADVERTENCIA: Error con PostgreSQL: {e}")
-
 # ============================================
-# 8. VALIDACIÓN DE CONTRASEÑAS
+# 7. VALIDACIÓN DE CONTRASEÑAS
 # ============================================
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -131,7 +94,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # ============================================
-# 9. INTERNACIONALIZACIÓN
+# 8. INTERNACIONALIZACIÓN
 # ============================================
 LANGUAGE_CODE = 'es-ec'
 TIME_ZONE = 'America/Guayaquil'
@@ -139,30 +102,26 @@ USE_I18N = True
 USE_TZ = True
 
 # ============================================
-# 10. ARCHIVOS ESTÁTICOS
+# 9. ARCHIVOS ESTÁTICOS
 # ============================================
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-
-if not DEBUG:
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-else:
-    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
 # ============================================
-# 11. ARCHIVOS MEDIA
+# 10. ARCHIVOS MEDIA
 # ============================================
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # ============================================
-# 12. SEGURIDAD EN PRODUCCIÓN
+# 11. SEGURIDAD EN PRODUCCIÓN
 # ============================================
-if not DEBUG and RENDER_EXTERNAL_HOSTNAME:
+if not DEBUG:
     # HTTPS
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = True
@@ -178,19 +137,14 @@ if not DEBUG and RENDER_EXTERNAL_HOSTNAME:
     ]
     if RENDER_EXTERNAL_HOSTNAME:
         CSRF_TRUSTED_ORIGINS.append(f'https://{RENDER_EXTERNAL_HOSTNAME}')
-else:
-    # Configuración para desarrollo
-    SECURE_SSL_REDIRECT = False
-    SESSION_COOKIE_SECURE = False
-    CSRF_COOKIE_SECURE = False
 
 # ============================================
-# 13. CONFIGURACIÓN DEFAULT
+# 12. CONFIGURACIÓN DEFAULT
 # ============================================
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ============================================
-# 14. LOGGING
+# 13. LOGGING
 # ============================================
 LOGGING = {
     'version': 1,
@@ -202,6 +156,6 @@ LOGGING = {
     },
     'root': {
         'handlers': ['console'],
-        'level': 'INFO' if DEBUG else 'WARNING',
+        'level': 'INFO',
     },
 }
