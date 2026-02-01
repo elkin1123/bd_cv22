@@ -1,19 +1,18 @@
 services:
   - type: web
-    name: hoja-de-vida
+    name: bd-cv22
     env: python
     plan: free
-    region: oregon  # ¡IMPORTANTE! Misma región que tu PostgreSQL
-    buildCommand: "./build.sh"
-    startCommand: "gunicorn mi_proyecto.wsgi:application"
+    runtime: python
+    pythonVersion: "3.11.9"
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+      python manage.py migrate --noinput
+      python manage.py collectstatic --noinput
+    startCommand: gunicorn mi_proyecto.wsgi:application
     envVars:
-      - key: DATABASE_URL
-        value: postgresql://bd_hojacv_user:WEaWUGuFvJVKa7AUfuSKmdpcbkmGxWSM@dpg-d5cq34er433s73a0dfog-a.oregon-postgres.render.com/bd_hojacv
       - key: SECRET_KEY
         generateValue: true
       - key: DEBUG
         value: "False"
-      - key: WEB_CONCURRENCY
-        value: 4
-    healthCheckPath: /
-    autoDeploy: true
