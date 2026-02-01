@@ -3,6 +3,7 @@ services:
     name: hoja-de-vida
     env: python
     plan: free
+    region: oregon  # ¡IMPORTANTE! Misma región que tu PostgreSQL
     buildCommand: "./build.sh"
     startCommand: "gunicorn mi_proyecto.wsgi:application"
     envVars:
@@ -12,7 +13,7 @@ services:
         generateValue: true
       - key: DEBUG
         value: "False"
-      - key: PYTHON_VERSION
-        value: 3.11.0
+      - key: WEB_CONCURRENCY
+        value: 4
     healthCheckPath: /
     autoDeploy: true

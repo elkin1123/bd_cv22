@@ -26,4 +26,13 @@ Thumbs.db
 
 # Environment variables
 .env
-*.env
+*.env/staticfiles/
+/media/
+*.sqlite3
+.env
+
+# Django static files
+staticfiles/
+/staticfiles/
+staticfiles/*
+/staticfiles/*
