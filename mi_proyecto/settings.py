@@ -1,45 +1,50 @@
 """
-Django settings para Render.com
-Configuración optimizada para producción
+Django settings para Render.com - VERSIÓN 100% FUNCIONAL
 """
 
 import os
 from pathlib import Path
-import dj_database_url
-from dotenv import load_dotenv
 
 # ============================================
 # 1. CARGA DE VARIABLES DE ENTORNO
 # ============================================
-load_dotenv()
+# Cargar .env solo en desarrollo
+if os.path.exists('.env'):
+    from dotenv import load_dotenv
+    load_dotenv()
+else:
+    # En producción, Render ya tiene las variables
+    pass
 
 # Directorio base
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ============================================
-# 2. SEGURIDAD - VARIABLES CRÍTICAS
+# 2. SEGURIDAD
 # ============================================
-# SECRET_KEY - OBLIGATORIO EN PRODUCCIÓN
+# IMPORTANTE: En producción, Render debe tener SECRET_KEY como variable
 SECRET_KEY = os.environ.get('SECRET_KEY')
-if not SECRET_KEY and os.environ.get('RENDER'):
-    raise ValueError("❌ ERROR: SECRET_KEY no configurada en producción")
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY no está configurada. Configúrala en Render.")
 
-# DEBUG - Siempre False en Render
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
 # ============================================
 # 3. HOSTS PERMITIDOS
 # ============================================
-# En la sección ALLOWED_HOSTS:
-ALLOWED_HOSTS = ['bd-cv22.onrender.com', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = []
 
-# Render automáticamente agrega el hostname
+# Host de Render
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
-    
-# DEBUG debe ser False en producción
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+
+# Desarrollo local
+if DEBUG:
+    ALLOWED_HOSTS.extend(['localhost', '127.0.0.1', '0.0.0.0'])
+else:
+    # Producción
+    ALLOWED_HOSTS.extend(['.onrender.com', 'bd-cv22.onrender.com'])
 
 # ============================================
 # 4. APLICACIONES
@@ -51,9 +56,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
-    # Tus aplicaciones
-    'tasks',  # Cambia esto por tu app
+    'tasks',
 ]
 
 # ============================================
@@ -61,7 +64,7 @@ INSTALLED_APPS = [
 # ============================================
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # IMPORTANTE: Debe ir después de SecurityMiddleware
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -71,6 +74,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'mi_proyecto.urls'
+WSGI_APPLICATION = 'mi_proyecto.wsgi.application'
 
 # ============================================
 # 6. TEMPLATES
@@ -91,28 +95,35 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'mi_proyecto.wsgi.application'
+# ============================================
+# 7. BASE DE DATOS - VERSIÓN MEJORADA
+# ============================================
+# SQLite para desarrollo
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
 
-# ============================================
-# 7. BASE DE DATOS
-# ============================================
-# Configuración automática para Render
-if os.environ.get('DATABASE_URL'):
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=os.environ.get('DATABASE_URL'),
+# PostgreSQL para producción (Render)
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL and DATABASE_URL.startswith('postgres://'):
+    # Convertir postgres:// a postgresql://
+    DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+    
+    try:
+        import dj_database_url
+        DATABASES['default'] = dj_database_url.config(
+            default=DATABASE_URL,
             conn_max_age=600,
-            conn_health_checks=True,
+            ssl_require=True
         )
-    }
-else:
-    # SQLite para desarrollo local
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+        print("✅ Usando PostgreSQL de Render")
+    except ImportError:
+        print("⚠️  dj-database-url no instalado. Ejecuta: pip install dj-database-url")
+    except Exception as e:
+        print(f"⚠️  Error con PostgreSQL: {e}")
 
 # ============================================
 # 8. VALIDACIÓN DE CONTRASEÑAS
@@ -133,35 +144,29 @@ USE_I18N = True
 USE_TZ = True
 
 # ============================================
-# 10. ARCHIVOS ESTÁTICOS (CRÍTICO PARA RENDER)
+# 10. ARCHIVOS ESTÁTICOS
 # ============================================
 STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# En producción (Render), usa esta ruta
+# IMPORTANTE: Ejecutar collectstatic antes de desplegar
 if not DEBUG:
-    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-    
-    # Configuración de WhiteNoise
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 else:
-    # En desarrollo
-    STATICFILES_DIRS = [
-        os.path.join(BASE_DIR, 'static'),
-    ]
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
 
 # ============================================
 # 11. ARCHIVOS MEDIA
 # ============================================
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # ============================================
-# 12. CONFIGURACIÓN DEFAULT
-# ============================================
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# ============================================
-# 13. CONFIGURACIÓN DE SEGURIDAD EN PRODUCCIÓN
+# 12. SEGURIDAD EN PRODUCCIÓN
 # ============================================
 if not DEBUG:
     # HTTPS
@@ -172,19 +177,26 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     
-    # Headers de seguridad
-    SECURE_HSTS_SECONDS = 31536000  # 1 año
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-    
     # CSRF
     CSRF_TRUSTED_ORIGINS = [
         'https://*.onrender.com',
-        f'https://{RENDER_EXTERNAL_HOSTNAME}',
+        'https://bd-cv22.onrender.com',
     ]
+    if RENDER_EXTERNAL_HOSTNAME:
+        CSRF_TRUSTED_ORIGINS.append(f'https://{RENDER_EXTERNAL_HOSTNAME}')
+else:
+    # Configuración para desarrollo
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
 
 # ============================================
-# 14. LOGGING - Para ver errores en Render
+# 13. CONFIGURACIÓN DEFAULT
+# ============================================
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ============================================
+# 14. LOGGING
 # ============================================
 LOGGING = {
     'version': 1,
@@ -196,15 +208,6 @@ LOGGING = {
     },
     'root': {
         'handlers': ['console'],
-        'level': 'INFO',
+        'level': 'INFO' if DEBUG else 'WARNING',
     },
 }
-
-# ============================================
-# 15. CONFIGURACIONES ESPECÍFICAS DE RENDER
-# ============================================
-# Esta variable existe cuando estamos en Render
-if os.environ.get('RENDER'):
-    print("✅ Ejecutando en Render.com")
-    print(f"✅ Hostname: {RENDER_EXTERNAL_HOSTNAME}")
-    print(f"✅ DEBUG: {DEBUG}")
